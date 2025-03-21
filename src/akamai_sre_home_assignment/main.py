@@ -1,7 +1,4 @@
 import httpx
-from fastapi import FastAPI
-
-app = FastAPI()
 
 
 def fetch_characters(url, page):
@@ -17,7 +14,7 @@ def fetch_characters(url, page):
     return response.json()
 
 
-def parse_request(characters):
+def filter_request(characters):
     for character in characters:
         if "Earth" in character["origin"]["name"]:
             # print(
@@ -41,7 +38,7 @@ def main():
     total_pages = characters["info"]["pages"]
 
     # Process the first page
-    data_results = parse_request(characters["results"])
+    data_results = filter_request(characters["results"])
     all_data_results.extend(data_results)
 
     # Iterate through the remaining pages
@@ -49,7 +46,7 @@ def main():
         characters = fetch_characters(BASE_URL, page)
         if characters is False:
             break
-        data_results = parse_request(characters["results"])
+        data_results = filter_request(characters["results"])
         all_data_results.extend(data_results)
 
     print(all_data_results)
