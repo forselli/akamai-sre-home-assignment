@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import time
+from datetime import datetime
 from typing import List, Optional
 
 import httpx
@@ -98,7 +99,18 @@ def filter_request(characters):
 def save_characters_to_db(characters: List[dict], db: Session):
     for character in characters:
         db_character = models.Character(
-            name=character["name"], origin=character["origin"]["name"], data=character
+            id=character.get("id"),
+            name=character.get("name", ""),
+            status=character.get("status", ""),
+            species=character.get("species", ""),
+            type=character.get("type", ""),
+            gender=character.get("gender", ""),
+            origin=character.get("origin", {}),
+            location=character.get("location", {}),
+            image=character.get("image", ""),
+            episode=character.get("episode", []),
+            url=character.get("url", ""),
+            created=character.get("created"),
         )
         db.add(db_character)
     db.commit()
