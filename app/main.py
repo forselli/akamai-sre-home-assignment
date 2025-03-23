@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import time
-from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
@@ -16,6 +15,14 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from . import models
 from .database import engine, get_db
+from .exceptions import (
+    BadRequestException,
+    RateLimitException,
+    ServiceUnavailableException,
+    bad_request_exception_handler,
+    rate_limit_exception_handler,
+    service_unavailable_exception_handler,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,6 +36,13 @@ app = FastAPI()
 add_pagination(app)
 disable_installed_extensions_check()
 
+# Register exception handler
+app.add_exception_handler(RateLimitException, rate_limit_exception_handler)
+app.add_exception_handler(BadRequestException, bad_request_exception_handler)
+app.add_exception_handler(
+    ServiceUnavailableException, service_unavailable_exception_handler
+)
+
 # Connect to Redis
 redis_client = redis.Redis(
     host=os.getenv("REDIS_HOST", "redis"), port=int(os.getenv("REDIS_PORT", 6379)), db=0
@@ -36,7 +50,7 @@ redis_client = redis.Redis(
 redis_ttl = int(os.getenv("REDIS_TTL", 30))
 
 # API Configuration
-API_RATE_LIMIT = 100  # requests per minute
+API_RATE_LIMIT = 5  # requests per minute
 API_RATE_WINDOW = 60  # seconds
 REQUEST_TIMEOUT = 30  # seconds
 
@@ -65,13 +79,6 @@ def fetch_characters(url: str, page: int) -> Optional[dict]:
     """
     Fetch characters from the Rick and Morty API with retry logic and rate limiting.
     """
-    if is_rate_limited():
-        wait_time = redis_client.ttl("api_request_count")
-        logger.warning(f"Rate limited. Waiting {wait_time} seconds before retrying.")
-        time.sleep(wait_time)
-        return fetch_characters(url, page)
-
-    logger.info(f"Fetching page {page}")
     try:
         with httpx.Client(timeout=REQUEST_TIMEOUT) as client:
             response = client.get(url + str(page))
@@ -135,18 +142,13 @@ def main(db: Session):
 
         # Fetch the first page outside the loop to get the total number of pages
         characters = fetch_characters(BASE_URL, page)
-        if not characters:
-            raise HTTPException(status_code=500, detail="Failed to fetch initial data")
 
         total_pages = characters["info"]["pages"]
         logger.info(f"Total pages to fetch: {total_pages}")
 
         # Process the first page
-        data_results = list(filter_request(characters["results"]))
-        all_data_results.extend(data_results)
-        logger.info(
-            f"Processed page {page}, found {len(data_results)} Earth characters"
-        )
+        all_data_results.extend(filter_request(characters["results"]))
+        logger.info(f"Processing page {page} from {total_pages}")
 
         # Iterate through the remaining pages
         for page in range(2, total_pages + 1):
@@ -155,11 +157,8 @@ def main(db: Session):
                 if not characters:
                     logger.warning(f"Failed to fetch page {page}, stopping pagination")
                     break
-                data_results = list(filter_request(characters["results"]))
-                all_data_results.extend(data_results)
-                logger.info(
-                    f"Processed page {page}, found {len(data_results)} Earth characters"
-                )
+                all_data_results.extend(filter_request(characters["results"]))
+                logger.info(f"Processing page {page} from {total_pages}")
             except Exception as e:
                 logger.error(f"Error processing page {page}: {str(e)}")
                 # Continue with next page instead of failing completely
@@ -197,18 +196,17 @@ async def get_characters(
     sort_by: SortField = Query(default=SortField.ID, description="Field to sort by"),
     order: SortOrder = Query(default=SortOrder.ASC, description="Sort order"),
 ) -> Page[models.CharacterResponse]:
-    try:
-        # Get characters (either from cache or by fetching)
-        characters = main(db)
+    if is_rate_limited():
+        raise RateLimitException()
 
-        # Sort the characters based on the parameters
-        sorted_characters = sorted(
-            characters,
-            key=lambda x: x[sort_by.value],
-            reverse=(order == SortOrder.DESC),
-        )
+    # Get characters (either from cache or by fetching)
+    characters = main(db)
 
-        return paginate(sorted_characters)
-    except Exception as e:
-        logger.error(f"Error in get_characters endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    # Sort the characters based on the parameters
+    sorted_characters = sorted(
+        characters,
+        key=lambda x: x[sort_by.value],
+        reverse=(order == SortOrder.DESC),
+    )
+
+    return paginate(sorted_characters)
