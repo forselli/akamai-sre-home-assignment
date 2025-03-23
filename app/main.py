@@ -8,6 +8,8 @@ from typing import List, Optional
 import httpx
 import redis
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi_pagination import Page, add_pagination, paginate
+from fastapi_pagination.utils import disable_installed_extensions_check
 from sqlalchemy.orm import Session
 from tenacity import retry, stop_after_attempt, wait_exponential
 
@@ -23,6 +25,8 @@ models.Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI()
+add_pagination(app)
+disable_installed_extensions_check()
 
 # Connect to Redis
 redis_client = redis.Redis(
@@ -88,15 +92,14 @@ def fetch_characters(url: str, page: int) -> Optional[dict]:
 
 
 def filter_request(characters):
+    """Filter the characters to only include Earth characters."""
     for character in characters:
         if "Earth" in character["origin"]["name"]:
-            # print(
-            #     f"Found character {character['name']} on {character['origin']['name']}"
-            # )
             yield character
 
 
 def save_characters_to_db(characters: List[dict], db: Session):
+    """Save the characters to the database."""
     for character in characters:
         db_character = models.Character(
             id=character.get("id"),
@@ -112,7 +115,7 @@ def save_characters_to_db(characters: List[dict], db: Session):
             url=character.get("url", ""),
             created=character.get("created"),
         )
-        db.add(db_character)
+        db.merge(db_character)
     db.commit()
 
 
@@ -172,18 +175,20 @@ def main(db: Session):
 
 
 @app.get("/characters")
-async def get_characters(db: Session = Depends(get_db)):
+async def get_characters(
+    db: Session = Depends(get_db),
+) -> Page[models.CharacterResponse]:
     try:
         cached_characters = redis_client.get("characters")
         if cached_characters:
             logger.info("Returning cached characters")
-            return json.loads(cached_characters.decode("utf-8"))
+            return paginate(json.loads(cached_characters.decode("utf-8")))
 
         logger.info("Fetching characters")
         characters = main(db)
         # Store the item in Redis with TTL from environment variable
         redis_client.set("characters", json.dumps(characters), ex=redis_ttl)
-        return characters
+        return paginate(characters)
     except Exception as e:
         logger.error(f"Error in get_characters endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
