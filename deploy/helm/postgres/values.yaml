@@ -1,0 +1,42 @@
+controllers:
+  postgres:
+    enabled: true
+    type: statefulset
+    containers:
+      postgres:
+        image:
+          repository: postgres
+          tag: latest
+          pullPolicy: IfNotPresent
+        ports:
+          - containerPort: 5432
+            protocol: TCP
+        envFrom:
+          - secret: credentials
+service:
+  postgres:
+    enabled: true
+    controller: postgres
+    type: ClusterIP
+    ports:
+      postgres:
+        enabled: true
+        port: 5432
+        protocol: TCP
+persistence:
+  data:
+    enabled: true
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    retain: false
+    advancedMounts:
+      postgres:
+        postgres:
+          - path: /var/lib/postgresql/data
+secrets:
+  credentials:
+    enabled: true
+    stringData:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres

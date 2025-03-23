@@ -1,0 +1,2 @@
+mkdir -p app/src app/tests
+mv app/*.py app/src/

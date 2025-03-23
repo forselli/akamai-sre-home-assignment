@@ -1,4 +1,3 @@
-# pull official base image
 FROM python:3.12-slim-bullseye as builder
 
 RUN pip install poetry==2.1.1
@@ -13,15 +12,24 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 RUN touch README.md
 
-RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root
+# Install dependencies with caching enabled
+RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root --only=main
 
 FROM python:3.12-slim-bullseye as runtime
+
+RUN useradd --create-home appuser
 
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"
 
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+WORKDIR /app
 
-COPY app/ ./app
+# Copy the virtual environment from the builder stage
+COPY --from=builder --chown=appuser:appuser ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
+COPY --chown=appuser:appuser app/src ./app
+
+USER appuser
+
+# Default command
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

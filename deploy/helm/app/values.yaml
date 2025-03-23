@@ -1,0 +1,63 @@
+controllers:
+  app:
+    enabled: true
+    type: deployment
+    containers:
+      app:
+        image:
+          repository: app
+          tag: latest
+          pullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8000
+            protocol: TCP
+        envFrom:
+          - configMapRef:
+              name: "{{ .Release.Name }}-config"
+          - secret: credentials
+service:
+  app:
+    enabled: true
+    controller: app
+    type: ClusterIP
+    ports:
+      app:
+        enabled: true
+        port: 8000
+        protocol: TCP
+secrets:
+  credentials:
+    enabled: true
+    stringData:
+      POSTGRES_USER=postgres
+      POSTGRES_PASSWORD=postgres
+configMaps:
+  config:
+    enabled: true
+    data:
+      POSTGRES_DB=postgres
+      POSTGRES_PORT=5432
+      POSTGRES_HOST=postgres
+      REDIS_HOST=redis
+      REDIS_PORT=6379
+      REDIS_TTL=300
+ingress:
+  app:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/backend-protocol: HTTP
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+      nginx.ingress.kubernetes.io/x-forwarded-prefix: /app
+    hosts:
+      - host: app.stratio.k8s.eosdev2.labs.stratio.com
+        paths:
+          - path: /app(/|$)(.*)
+            pathType: Prefix
+            service:
+              name: app
+              identifier: app
+              port: 80

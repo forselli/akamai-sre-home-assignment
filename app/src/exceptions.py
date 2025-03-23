@@ -29,9 +29,9 @@ async def service_unavailable_exception_handler(
     return JSONResponse(status_code=503, content={"message": exc.message})
 
 
-async def bad_request_exception_handler(request: Request, exc: BadRequestException):
-    return JSONResponse(status_code=400, content={"message": exc.message})
-
-
 async def rate_limit_exception_handler(request: Request, exc: RateLimitException):
-    return JSONResponse(status_code=429, content={"message": exc.message})
+    return JSONResponse(
+        status_code=429,
+        content={"message": exc.message},
+        headers={"Retry-After": "60"},  # Retry after 60 seconds
+    )

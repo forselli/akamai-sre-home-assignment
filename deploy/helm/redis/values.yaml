@@ -1,0 +1,13 @@
+controllers:
+  redis:
+    enabled: true
+    type: deployment
+    containers:
+      redis:
+        image:
+          repository: redis
+          tag: alpine
+          pullPolicy: IfNotPresent
+        ports:
+          - containerPort: 6379
+            protocol: TCP
