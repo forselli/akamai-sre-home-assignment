@@ -3,11 +3,12 @@ import logging
 import os
 import time
 from datetime import datetime
+from enum import Enum
 from typing import List, Optional
 
 import httpx
 import redis
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi_pagination import Page, add_pagination, paginate
 from fastapi_pagination.utils import disable_installed_extensions_check
 from sqlalchemy.orm import Session
@@ -35,7 +36,7 @@ redis_client = redis.Redis(
 redis_ttl = int(os.getenv("REDIS_TTL", 30))
 
 # API Configuration
-API_RATE_LIMIT = 20  # requests per minute
+API_RATE_LIMIT = 100  # requests per minute
 API_RATE_WINDOW = 60  # seconds
 REQUEST_TIMEOUT = 30  # seconds
 
@@ -127,6 +128,11 @@ def main(db: Session):
     page = 1
 
     try:
+        # Check if data is already in Redis
+        cached_characters = redis_client.get("characters")
+        if cached_characters:
+            return json.loads(cached_characters.decode("utf-8"))
+
         # Fetch the first page outside the loop to get the total number of pages
         characters = fetch_characters(BASE_URL, page)
         if not characters:
@@ -162,10 +168,11 @@ def main(db: Session):
         if not all_data_results:
             raise HTTPException(status_code=500, detail="No Earth characters found")
 
-        # Save to database
+        # Save to database and Redis
         save_characters_to_db(all_data_results, db)
+        redis_client.set("characters", json.dumps(all_data_results), ex=redis_ttl)
         logger.info(
-            f"Successfully saved {len(all_data_results)} characters to database"
+            f"Successfully saved {len(all_data_results)} characters to database and cache"
         )
         return all_data_results
 
@@ -174,21 +181,34 @@ def main(db: Session):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class SortField(str, Enum):
+    NAME = "name"
+    ID = "id"
+
+
+class SortOrder(str, Enum):
+    ASC = "asc"
+    DESC = "desc"
+
+
 @app.get("/characters")
 async def get_characters(
     db: Session = Depends(get_db),
+    sort_by: SortField = Query(default=SortField.ID, description="Field to sort by"),
+    order: SortOrder = Query(default=SortOrder.ASC, description="Sort order"),
 ) -> Page[models.CharacterResponse]:
     try:
-        cached_characters = redis_client.get("characters")
-        if cached_characters:
-            logger.info("Returning cached characters")
-            return paginate(json.loads(cached_characters.decode("utf-8")))
-
-        logger.info("Fetching characters")
+        # Get characters (either from cache or by fetching)
         characters = main(db)
-        # Store the item in Redis with TTL from environment variable
-        redis_client.set("characters", json.dumps(characters), ex=redis_ttl)
-        return paginate(characters)
+
+        # Sort the characters based on the parameters
+        sorted_characters = sorted(
+            characters,
+            key=lambda x: x[sort_by.value],
+            reverse=(order == SortOrder.DESC),
+        )
+
+        return paginate(sorted_characters)
     except Exception as e:
         logger.error(f"Error in get_characters endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
