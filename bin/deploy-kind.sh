@@ -19,11 +19,11 @@ kind load docker-image app:forselli
 kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
 # Wait for the ingress-nginx namespace to be created
 echo "Waiting for ingress-nginx pod to be created..."
-sleep 20
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
+# sleep 20
+# kubectl wait --namespace ingress-nginx \
+#   --for=condition=ready pod \
+#   --selector=app.kubernetes.io/component=controller \
+#   --timeout=90s
 
 flux install --components="source-controller,kustomize-controller"
 

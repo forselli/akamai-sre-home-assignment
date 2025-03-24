@@ -3,6 +3,6 @@ kind: Kustomization
 namespace: demo
 resources:
   - rbac.yaml
-  - postgres
-  - redis
-  - app
+  - postgres.yaml
+  - redis.yaml
+  - app.yaml
