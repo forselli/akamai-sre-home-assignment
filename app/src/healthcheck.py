@@ -47,9 +47,7 @@ def check_database() -> ComponentHealth:
             )
 
             # Test 3: Test write operation
-            connection.execute(
-                text("INSERT INTO healthcheck_test (test_col) VALUES ('test_value')")
-            )
+            connection.execute(text("INSERT INTO healthcheck_test (test_col) VALUES ('test_value')"))
 
             # Get basic metrics
             metrics = {}
@@ -179,9 +177,7 @@ def get_health() -> HealthCheck:
     cache_status = check_redis()
 
     # Determine overall status
-    all_healthy = all(
-        check["status"] == "healthy" for check in [db_status, cache_status]
-    )
+    all_healthy = all(check["status"] == "healthy" for check in [db_status, cache_status])
 
     checks = ComponentChecks(database=db_status, cache=cache_status)
 

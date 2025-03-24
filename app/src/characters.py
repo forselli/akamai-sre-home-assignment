@@ -20,9 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def main(db: Session):
-    BASE_URL = (
-        "https://rickandmortyapi.com/api/character?species=Human&status=Alive&page="
-    )
+    BASE_URL = "https://rickandmortyapi.com/api/character?species=Human&status=Alive&page="
     all_data_results = []
     page = 1
 
@@ -62,9 +60,7 @@ def main(db: Session):
         # Save to database and Redis
         save_characters_to_db(all_data_results, db)
         redis_client.set("characters", json.dumps(all_data_results), ex=redis_ttl)
-        logger.info(
-            f"Successfully saved {len(all_data_results)} characters to database and cache"
-        )
+        logger.info(f"Successfully saved {len(all_data_results)} characters to database and cache")
         return all_data_results
 
     except Exception as e:

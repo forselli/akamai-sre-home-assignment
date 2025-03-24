@@ -23,9 +23,7 @@ class BadRequestException(Exception):
         self.message = message
 
 
-async def service_unavailable_exception_handler(
-    request: Request, exc: ServiceUnavailableException
-):
+async def service_unavailable_exception_handler(request: Request, exc: ServiceUnavailableException):
     return JSONResponse(status_code=503, content={"message": exc.message})
 
 

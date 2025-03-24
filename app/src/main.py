@@ -34,9 +34,7 @@ disable_installed_extensions_check()
 
 # Register exception handler
 app.add_exception_handler(RateLimitException, rate_limit_exception_handler)
-app.add_exception_handler(
-    ServiceUnavailableException, service_unavailable_exception_handler
-)
+app.add_exception_handler(ServiceUnavailableException, service_unavailable_exception_handler)
 
 
 class SortField(str, Enum):
@@ -80,9 +78,5 @@ async def get_characters(
 )
 async def healthcheck():
     health_result = get_health()
-    status_code = (
-        status.HTTP_200_OK
-        if health_result.status == "healthy"
-        else status.HTTP_503_SERVICE_UNAVAILABLE
-    )
+    status_code = status.HTTP_200_OK if health_result.status == "healthy" else status.HTTP_503_SERVICE_UNAVAILABLE
     return JSONResponse(status_code=status_code, content=health_result.__dict__)

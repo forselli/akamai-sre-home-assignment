@@ -3,9 +3,7 @@ import os
 import redis
 
 # Connect to Redis
-redis_client = redis.Redis(
-    host=os.getenv("REDIS_HOST", "redis"), port=int(os.getenv("REDIS_PORT", 6379)), db=0
-)
+redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "redis"), port=int(os.getenv("REDIS_PORT", 6379)), db=0)
 redis_ttl = int(os.getenv("REDIS_TTL", 30))
 
 # API Configuration
