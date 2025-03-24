@@ -13,7 +13,6 @@ spec:
     /*
     # include deploy dir
     !/site/static/examples/ingress/deploy-ingress-nginx.yaml
-
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
