@@ -19,11 +19,11 @@ controllers:
           - secret: credentials
         resources:
           requests:
-            cpu: "50m"
-            memory: "25Mi"
-          limits:
             cpu: "100m"
-            memory: "50Mi"
+            memory: "120Mi"
+          limits:
+            cpu: "200m"
+            memory: "240Mi"
 service:
   app:
     enabled: true
@@ -109,7 +109,7 @@ rawResources:
           apiVersion: apps/v1
           kind: Deployment
           name: app
-        minReplicas: 2
+        minReplicas: 1
         maxReplicas: 10
         metrics:
           - type: Resource
