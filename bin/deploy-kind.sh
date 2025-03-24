@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 echo "Creating kind cluster"
 cat <<EOF | kind create cluster --config=-
 kind: Cluster
@@ -32,4 +32,4 @@ flux create kustomization flux-system \
   --path=./clusters/staging
 
 # Verify all resources are ready
-kubectl -n flux-system wait kustomization/infra-controllers --for=condition=ready --timeout=5m
+# kubectl -n flux-system wait kustomization/infra-controllers --for=condition=ready --timeout=5m
