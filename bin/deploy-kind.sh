@@ -1,5 +1,12 @@
 #!/bin/bash
 set -e
+
+# Check if required environment variables are defined
+: "${GITHUB_PAT:?Environment variable GITHUB_PAT is not set}"
+: "${GITHUB_URL:?Environment variable GITHUB_URL is not set}"
+: "${GITHUB_BRANCH:?Environment variable GITHUB_BRANCH is not set}"
+: "${GITHUB_USERNAME:?Environment variable GITHUB_USERNAME is not set}"
+
 echo "Creating kind cluster"
 cat <<EOF | kind create cluster --config=-
 kind: Cluster
@@ -21,9 +28,9 @@ flux install --components="source-controller,kustomize-controller,helm-controlle
 
 # Create Flux main source
 flux create source git flux-system \
-  --url="https://github.com/forselli/akamai-sre-home-assignment" \
-  --branch="main" \
-  --username="forselli" \
+  --url="${GITHUB_URL}" \
+  --branch="${GITHUB_BRANCH}" \
+  --username="${GITHUB_USERNAME}" \
   --password="${GITHUB_PAT}"
 
 # Create Flux main kustomization
