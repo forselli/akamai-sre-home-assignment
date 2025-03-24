@@ -13,19 +13,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build docker image
-        run: docker build -t localhost:5001/app:forselli .
+        run: docker build -t app:forselli .
       - name: Setup Flux
         uses: fluxcd/flux2/action@main
       - name: Setup Kubernetes
+        id: kind
         uses: helm/kind-action@v1.7.0
         with:
           cluster_name: flux
           registry: true
           registry_name: my-registry
           registry_port: 5001
-          registry_enable_delete: true
       - name: Push docker image
-        run: docker push localhost:5001/app:forselli
+        env:
+          LOCAL_REGISTRY: ${{ steps.kind.outputs.LOCAL_REGISTRY }}
+        run: |
+          docker tag app:forselli $LOCAL_REGISTRY/app:forselli
+          docker push $LOCAL_REGISTRY/app:forselli
       - name: Install Flux in Kubernetes Kind
         run: flux install
       - name: Setup cluster reconciliation
