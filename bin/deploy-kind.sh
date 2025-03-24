@@ -16,14 +16,20 @@ nodes:
 EOF
 kind load docker-image app:forselli
 
+# Install Flux
 flux install --components="source-controller,kustomize-controller,helm-controller"
 
+# Create Flux main source
 flux create source git flux-system \
   --url="https://github.com/forselli/akamai-sre-home-assignment" \
   --branch="main" \
   --username="forselli" \
   --password="${GITHUB_PAT}"
 
+# Create Flux main kustomization
 flux create kustomization flux-system \
   --source=flux-system \
   --path=./clusters/staging
+
+# Verify all resources are ready
+kubectl -n flux-system wait kustomization/infra-controllers --for=condition=ready --timeout=5m
