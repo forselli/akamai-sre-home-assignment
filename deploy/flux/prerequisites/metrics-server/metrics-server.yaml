@@ -5,7 +5,7 @@ metadata:
 spec:
   interval: 1m0s
   ref:
-    branch: main
+    branch: master
   timeout: 60s
   url: https://github.com/kubernetes-sigs/metrics-server
 ---
