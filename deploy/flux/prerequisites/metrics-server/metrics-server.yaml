@@ -18,7 +18,16 @@ spec:
   sourceRef:
     kind: GitRepository
     name: metrics-server
-  path: ./manifests/overlays/test
+  path: ./manifests/base
   prune: true
   wait: true
   timeout: 5m0s
+  patches:
+    - patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --kubelet-insecure-tls
+      target:
+        kind: Deployment
+        name: metrics-server
+        namespace: kube-system
