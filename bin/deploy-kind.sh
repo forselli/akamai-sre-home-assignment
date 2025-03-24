@@ -21,11 +21,22 @@ kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.
 echo "Waiting for ingress-nginx pod to be created..."
 sleep 20
 kubectl wait --namespace ingress-nginx \
-    --for=condition=ready pod \
-    --selector=app.kubernetes.io/component=controller \
-    --timeout=90s
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=90s
 
-kubectl create ns demo
-helm install postgres -n demo deploy/helm/postgres --wait
-helm install redis -n demo deploy/helm/redis --wait
-helm install app -n demo deploy/helm/app --wait
+flux install --components="source-controller,kustomize-controller"
+
+flux create source git flux-system \
+  --url="https://github.com/forselli/akamai-sre-home-assignment" \
+  --branch="main" \
+  --username="forselli" \
+  --password="${GITHUB_PAT}"
+
+flux create kustomization flux-system \
+  --source=flux-system \
+  --path=./clusters/staging
+# kubectl create ns demo
+# helm install postgres -n demo deploy/helm/postgres --wait
+# helm install redis -n demo deploy/helm/redis --wait
+# helm install app -n demo deploy/helm/app --wait
