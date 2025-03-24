@@ -39,7 +39,7 @@ flux create kustomization flux-system \
   --path=./clusters/staging
 
 # Verify all resources are ready
-kubectl -n ingress-nginx wait kustomization/ingress-nginx --for=condition=ready --timeout=5m
+kubectl -n flux-system wait kustomization/apps-prerequisites --for=condition=ready --timeout=5m
 kubectl -n flux-system wait kustomization/apps --for=condition=ready --timeout=5m
 kubectl -n demo wait helmrelease/postgres --for=condition=ready --timeout=5m
 kubectl -n demo wait helmrelease/redis --for=condition=ready --timeout=5m
