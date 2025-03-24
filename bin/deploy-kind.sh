@@ -25,7 +25,7 @@ echo "Waiting for ingress-nginx pod to be created..."
 #   --selector=app.kubernetes.io/component=controller \
 #   --timeout=90s
 
-flux install --components="source-controller,kustomize-controller"
+flux install --components="source-controller,kustomize-controller,helm-controller"
 
 flux create source git flux-system \
   --url="https://github.com/forselli/akamai-sre-home-assignment" \
