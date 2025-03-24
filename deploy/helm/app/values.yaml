@@ -5,7 +5,7 @@ controllers:
     containers:
       app:
         image:
-          repository: app
+          repository: my-registry:5001/app
           tag: forselli
           pullPolicy: IfNotPresent
         ports:

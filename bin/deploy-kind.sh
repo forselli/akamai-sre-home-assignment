@@ -21,7 +21,7 @@ nodes:
     hostPort: 443
     protocol: TCP
 EOF
-kind load docker-image app:forselli
+kind load docker-image my-registry:5001/app:forselli
 
 # Install Flux
 flux install --components="source-controller,kustomize-controller,helm-controller"
