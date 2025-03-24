@@ -1,4 +1,5 @@
 import logging
+import os
 from enum import Enum
 
 from fastapi import Depends, FastAPI, Query, status
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 models.Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
-app = FastAPI()
+app = FastAPI(openapi_prefix=os.getenv("ROOT_PATH", ""))
 add_pagination(app)
 disable_installed_extensions_check()
 

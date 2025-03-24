@@ -11,3 +11,13 @@ controllers:
         ports:
           - containerPort: 6379
             protocol: TCP
+service:
+  redis:
+    enabled: true
+    controller: redis
+    type: ClusterIP
+    ports:
+      app:
+        enabled: true
+        port: 6379
+        protocol: TCP

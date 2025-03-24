@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bullseye as builder
+FROM python:3.12-slim-bullseye AS builder
 
 RUN pip install poetry==2.1.1
 
@@ -15,7 +15,7 @@ RUN touch README.md
 # Install dependencies with caching enabled
 RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root --only=main
 
-FROM python:3.12-slim-bullseye as runtime
+FROM python:3.12-slim-bullseye AS runtime
 
 RUN useradd --create-home appuser
 
