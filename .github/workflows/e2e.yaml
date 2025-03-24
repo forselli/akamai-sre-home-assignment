@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build docker image
-        run: docker build -t app:forselli .
+        run: docker build -t my-registry:5001/app:forselli .
       - name: Setup Flux
         uses: fluxcd/flux2/action@main
       - name: Setup Kubernetes
@@ -24,6 +24,8 @@ jobs:
           registry_name: my-registry
           registry_port: 5001
           registry_enable_delete: true
+      - name: Build push image
+        run: docker push my-registry:5001/app:forselli
       - name: Install Flux in Kubernetes Kind
         run: flux install
       - name: Setup cluster reconciliation
