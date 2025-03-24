@@ -6,7 +6,7 @@ controllers:
       postgres:
         image:
           repository: postgres
-          tag: latest
+          tag: 17.4-alpine3.21
           pullPolicy: IfNotPresent
         ports:
           - containerPort: 5432
