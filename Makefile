@@ -1,14 +1,14 @@
 build:
 	docker build -t app:forselli .
 
-deploy-kind: build
+kind: build
 	bin/deploy-kind.sh
 
-delete-kind:
+kind-rm:
 	kind delete cluster
 
-deploy-docker-compose:
+docker-compose:
 	docker-compose up -d --build
 
-delete-docker-compose:
+docker-compose-rm:
 	docker-compose down

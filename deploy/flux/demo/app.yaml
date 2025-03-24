@@ -8,6 +8,8 @@ spec:
   dependsOn:
     - name: postgres
     - name: redis
+    - name: ingress-nginx
+      namespace: ingress-nginx
   chart:
     spec:
       chart: ./deploy/helm/app

@@ -16,15 +16,6 @@ nodes:
 EOF
 kind load docker-image app:forselli
 
-kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
-# Wait for the ingress-nginx namespace to be created
-echo "Waiting for ingress-nginx pod to be created..."
-# sleep 20
-# kubectl wait --namespace ingress-nginx \
-#   --for=condition=ready pod \
-#   --selector=app.kubernetes.io/component=controller \
-#   --timeout=90s
-
 flux install --components="source-controller,kustomize-controller,helm-controller"
 
 flux create source git flux-system \
@@ -36,7 +27,3 @@ flux create source git flux-system \
 flux create kustomization flux-system \
   --source=flux-system \
   --path=./clusters/staging
-# kubectl create ns demo
-# helm install postgres -n demo deploy/helm/postgres --wait
-# helm install redis -n demo deploy/helm/redis --wait
-# helm install app -n demo deploy/helm/app --wait
