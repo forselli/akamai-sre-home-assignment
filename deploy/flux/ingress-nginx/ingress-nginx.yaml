@@ -1,0 +1,24 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: ingress-nginx
+spec:
+  interval: 12h
+  type: oci
+  url: oci://ghcr.io/nginx/charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: ingress-nginx
+spec:
+  releaseName: ingress-nginx
+  chart:
+    spec:
+      chart: ingress-nginx
+      version: 2.0.1
+      sourceRef:
+        kind: HelmRepository
+        name: ingress-nginx
+  interval: 1m
+  timeout: 5m
