@@ -139,11 +139,7 @@ def check_redis() -> ComponentHealth:
 
         # Check memory usage
         info = redis_client.info(section="memory")
-        used_memory_percent = (
-            int(info["used_memory"]) / int(info["maxmemory"]) * 100
-            if "maxmemory" in info and int(info["maxmemory"]) > 0
-            else 0
-        )
+        used_memory_percent = int(info["used_memory"]) / int(info["maxmemory"]) * 100 if "maxmemory" in info and int(info["maxmemory"]) > 0 else 0
 
         if used_memory_percent > 90:  # Warning if memory usage is above 90%
             return ComponentHealth(

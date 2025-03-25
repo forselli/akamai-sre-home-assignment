@@ -16,6 +16,12 @@ dependencies = [
     "psycopg2-binary (>=2.9.9,<3.0.0)",
     "tenacity (>=8.2.0,<9.0.0)",
     "fastapi-pagination (>=0.12.34,<0.13.0) ; python_version >= \"3.12\" and python_version < \"4.0\"",
+    "opentelemetry-api (>=1.31.1,<2.0.0)",
+    "opentelemetry-exporter-otlp (>=1.31.1,<2.0.0)",
+    "opentelemetry-instrumentation (>=0.52b1,<0.53)",
+    "opentelemetry-instrumentation-fastapi (>=0.52b1,<0.53)",
+    "opentelemetry-instrumentation-logging (>=0.52b1,<0.53)",
+    "prometheus-client (>=0.21.1,<0.22.0)",
 ]
 
 [tool.poetry]

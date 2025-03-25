@@ -15,6 +15,7 @@ from .cache import (
 )
 from .database import save_characters_to_db
 from .exceptions import ServiceUnavailableException
+from .utils import CACHE_HITS, CACHE_MISSES, CHARACTERS_PROCESSED
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,10 @@ def main(db: Session):
         # Check if data is already in Redis
         cached_characters = redis_client.get("characters")
         if cached_characters:
+            CACHE_HITS.labels(app_name="fastapi-app").inc()
             return json.loads(cached_characters.decode("utf-8"))
+
+        CACHE_MISSES.labels(app_name="fastapi-app").inc()
 
         # Fetch the first page outside the loop to get the total number of pages
         characters = fetch_characters(BASE_URL, page)
@@ -37,7 +41,9 @@ def main(db: Session):
         logger.info(f"Total pages to fetch: {total_pages}")
 
         # Process the first page
-        all_data_results.extend(filter_request(characters["results"]))
+        filtered_characters = list(filter_request(characters["results"]))
+        all_data_results.extend(filtered_characters)
+        CHARACTERS_PROCESSED.labels(app_name="fastapi-app").inc(len(filtered_characters))
         logger.info(f"Processing page {page} from {total_pages}")
 
         # Iterate through the remaining pages
@@ -47,7 +53,9 @@ def main(db: Session):
                 if not characters:
                     logger.warning(f"Failed to fetch page {page}, stopping pagination")
                     break
-                all_data_results.extend(filter_request(characters["results"]))
+                filtered_characters = list(filter_request(characters["results"]))
+                all_data_results.extend(filtered_characters)
+                CHARACTERS_PROCESSED.labels(app_name="fastapi-app").inc(len(filtered_characters))
                 logger.info(f"Processing page {page} from {total_pages}")
             except Exception as e:
                 logger.error(f"Error processing page {page}: {str(e)}")

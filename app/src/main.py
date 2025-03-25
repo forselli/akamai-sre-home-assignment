@@ -6,6 +6,7 @@ from fastapi import Depends, FastAPI, Query, status
 from fastapi.responses import JSONResponse
 from fastapi_pagination import Page, add_pagination, paginate
 from fastapi_pagination.utils import disable_installed_extensions_check
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from sqlalchemy.orm import Session
 
 from . import models
@@ -19,6 +20,7 @@ from .exceptions import (
     service_unavailable_exception_handler,
 )
 from .healthcheck import HealthCheck, get_health
+from .utils import PrometheusMiddleware, metrics
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,10 +33,13 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(openapi_prefix=os.getenv("ROOT_PATH", ""))
 add_pagination(app)
 disable_installed_extensions_check()
-
 # Register exception handler
 app.add_exception_handler(RateLimitException, rate_limit_exception_handler)
 app.add_exception_handler(ServiceUnavailableException, service_unavailable_exception_handler)
+# Observability
+app.add_middleware(PrometheusMiddleware, "app")
+app.add_route("/metrics", metrics)
+FastAPIInstrumentor.instrument_app(app)
 
 
 class SortField(str, Enum):
