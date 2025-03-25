@@ -2,25 +2,24 @@ import logging
 import os
 from enum import Enum
 
+import models
 import uvicorn
-from fastapi import Depends, FastAPI, Query, status
-from fastapi.responses import JSONResponse
-from fastapi_pagination import Page, add_pagination, paginate
-from fastapi_pagination.utils import disable_installed_extensions_check
-from sqlalchemy.orm import Session
-
-from . import models
-from .cache import is_rate_limited
-from .characters import main
-from .database import engine, get_db
-from .exceptions import (
+from cache import is_rate_limited
+from characters import main
+from database import engine, get_db
+from exceptions import (
     RateLimitException,
     ServiceUnavailableException,
     rate_limit_exception_handler,
     service_unavailable_exception_handler,
 )
-from .healthcheck import HealthCheck, get_health
-from .utils import PrometheusMiddleware, metrics, setting_otlp
+from fastapi import Depends, FastAPI, Query, status
+from fastapi.responses import JSONResponse
+from fastapi_pagination import Page, add_pagination, paginate
+from fastapi_pagination.utils import disable_installed_extensions_check
+from healthcheck import HealthCheck, get_health
+from sqlalchemy.orm import Session
+from utils import PrometheusMiddleware, metrics, setting_otlp
 
 OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "http://tempo:4317")
 

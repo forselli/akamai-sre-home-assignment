@@ -4,18 +4,17 @@ import time
 from typing import Optional
 
 import httpx
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
-from tenacity import retry, stop_after_attempt, wait_exponential
-
-from .cache import (
+from cache import (
     REQUEST_TIMEOUT,
     redis_client,
     redis_ttl,
 )
-from .database import save_characters_to_db
-from .exceptions import ServiceUnavailableException
-from .utils import CACHE_HITS, CACHE_MISSES, CHARACTERS_PROCESSED
+from database import save_characters_to_db
+from exceptions import ServiceUnavailableException
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+from tenacity import retry, stop_after_attempt, wait_exponential
+from utils import CACHE_HITS, CACHE_MISSES, CHARACTERS_PROCESSED
 
 logger = logging.getLogger(__name__)
 

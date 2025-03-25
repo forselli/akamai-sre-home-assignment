@@ -1,21 +1,19 @@
-import time
 from datetime import datetime
-from typing import Dict, TypedDict
+from typing import TypedDict
 
+from cache import redis_client
+from database import engine
 from psycopg2.extensions import QueryCanceledError
 from pydantic import BaseModel
 from redis.exceptions import RedisError
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from .cache import redis_client
-from .database import engine
-
 
 class ComponentHealth(TypedDict):
     status: str
     message: str
-    metrics: Dict[str, str]
+    metrics: dict[str, str]
 
 
 class ComponentChecks(TypedDict):
@@ -139,7 +137,11 @@ def check_redis() -> ComponentHealth:
 
         # Check memory usage
         info = redis_client.info(section="memory")
-        used_memory_percent = int(info["used_memory"]) / int(info["maxmemory"]) * 100 if "maxmemory" in info and int(info["maxmemory"]) > 0 else 0
+        used_memory_percent = (
+            int(info["used_memory"]) / int(info["maxmemory"]) * 100
+            if "maxmemory" in info and int(info["maxmemory"]) > 0
+            else 0
+        )
 
         if used_memory_percent > 90:  # Warning if memory usage is above 90%
             return ComponentHealth(

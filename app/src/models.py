@@ -1,10 +1,8 @@
 from datetime import datetime
-from typing import List, Optional
 
+from database import Base
 from pydantic import BaseModel
 from sqlalchemy import JSON, Column, DateTime, Integer, String
-
-from .database import Base
 
 
 class Character(Base):
@@ -34,12 +32,12 @@ class CharacterResponse(BaseModel):
     name: str
     status: str
     species: str
-    type: Optional[str] = ""
+    type: str | None = ""
     gender: str
     origin: LocationBase
     location: LocationBase
     image: str
-    episode: List[str]
+    episode: list[str]
     url: str
     created: datetime
 
