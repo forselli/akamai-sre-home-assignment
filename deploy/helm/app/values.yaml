@@ -19,11 +19,11 @@ controllers:
           - secret: credentials
         resources:
           requests:
-            cpu: "100m"
-            memory: "120Mi"
+            cpu: "250m"
+            memory: "100Mi"
           limits:
-            cpu: "200m"
-            memory: "240Mi"
+            cpu: "750m"
+            memory: "2000Mi"
 service:
   app:
     enabled: true
