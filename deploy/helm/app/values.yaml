@@ -8,7 +8,7 @@ controllers:
       app:
         image:
           repository: my-registry:5001/app
-          tag: forselli
+          tag: latest
           pullPolicy: IfNotPresent
         ports:
           - containerPort: 8000

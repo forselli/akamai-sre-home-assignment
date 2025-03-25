@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build docker image
-        run: docker build -t app:forselli .
+        run: docker build -t app:test .
       - name: Setup Flux
         uses: fluxcd/flux2/action@main
       - name: Setup Kubernetes
@@ -28,8 +28,8 @@ jobs:
         env:
           LOCAL_REGISTRY: ${{ steps.kind.outputs.LOCAL_REGISTRY }}
         run: |
-          docker tag app:forselli $LOCAL_REGISTRY/app:forselli
-          docker push $LOCAL_REGISTRY/app:forselli
+          docker tag app:test $LOCAL_REGISTRY/app:latest
+          docker push $LOCAL_REGISTRY/app:latest
       - name: Install Flux in Kubernetes Kind
         run: flux install
       - name: Setup cluster reconciliation

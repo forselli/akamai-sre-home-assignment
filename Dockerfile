@@ -27,9 +27,9 @@ WORKDIR /app
 # Copy the virtual environment from the builder stage
 COPY --from=builder --chown=appuser:appuser ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
-COPY --chown=appuser:appuser app/src ./app
+COPY --chown=appuser:appuser app/src ./
 
 USER appuser
 
 # Default command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD python main.py

@@ -1,5 +1,5 @@
 build:
-	docker build -t my-registry:5001/app:forselli .
+	docker build -t my-registry:5001/app:latest .
 
 kind: build
 	bin/deploy-kind.sh

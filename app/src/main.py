@@ -2,11 +2,11 @@ import logging
 import os
 from enum import Enum
 
+import uvicorn
 from fastapi import Depends, FastAPI, Query, status
 from fastapi.responses import JSONResponse
 from fastapi_pagination import Page, add_pagination, paginate
 from fastapi_pagination.utils import disable_installed_extensions_check
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from sqlalchemy.orm import Session
 
 from . import models
@@ -20,11 +20,20 @@ from .exceptions import (
     service_unavailable_exception_handler,
 )
 from .healthcheck import HealthCheck, get_health
-from .utils import PrometheusMiddleware, metrics
+from .utils import PrometheusMiddleware, metrics, setting_otlp
+
+OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "http://tempo:4317")
+
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+class EndpointFilter(logging.Filter):
+    # Uvicorn endpoint access log filter
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.getMessage().find("GET /metrics") == -1
+
+
+# Filter out /endpoint
+logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -36,10 +45,11 @@ disable_installed_extensions_check()
 # Register exception handler
 app.add_exception_handler(RateLimitException, rate_limit_exception_handler)
 app.add_exception_handler(ServiceUnavailableException, service_unavailable_exception_handler)
-# Observability
+# Configure Prometheus middleware
 app.add_middleware(PrometheusMiddleware, "app")
 app.add_route("/metrics", metrics)
-FastAPIInstrumentor.instrument_app(app)
+# Setting OpenTelemetry exporter
+setting_otlp(app, "fastapi-app", OTLP_GRPC_ENDPOINT)
 
 
 class SortField(str, Enum):
@@ -85,3 +95,12 @@ async def healthcheck():
     health_result = get_health()
     status_code = status.HTTP_200_OK if health_result.status == "healthy" else status.HTTP_503_SERVICE_UNAVAILABLE
     return JSONResponse(status_code=status_code, content=health_result.__dict__)
+
+
+if __name__ == "__main__":
+    # update uvicorn access logger format
+    log_config = uvicorn.config.LOGGING_CONFIG
+    log_config["formatters"]["access"]["fmt"] = (
+        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] [trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s] - %(message)s"
+    )
+    uvicorn.run(app, host="0.0.0.0", port="8000", log_config=log_config)
