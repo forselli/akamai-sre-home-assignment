@@ -50,7 +50,7 @@ configMaps:
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
       REDIS_PORT: "6379"
-      REDIS_TTL: "300"
+      REDIS_TTL: "1800"
 ingress:
   app:
     enabled: true
