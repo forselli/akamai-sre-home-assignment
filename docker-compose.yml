@@ -2,6 +2,9 @@ x-logging: &default-logging
   driver: loki
   options:
     loki-url: 'http://localhost:3100/api/prom/push'
+    mode: non-blocking
+    max-buffer-size: 4m
+    loki-retries: "3"
     loki-pipeline-stages: |
       - multiline:
           firstline: '^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}'
