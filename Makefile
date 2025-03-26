@@ -14,4 +14,4 @@ docker-compose-rm:
 	docker-compose down
 
 lint:
-	bin/lint.sh
+	poetry run ruff check app/src
