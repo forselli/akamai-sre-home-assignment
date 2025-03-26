@@ -15,3 +15,6 @@ docker-compose-rm:
 
 lint:
 	poetry run ruff check app/src
+
+test:
+	PYTHONPATH="app/src:app/tests" poetry run pytest

@@ -6,7 +6,7 @@ A FastAPI-based microservice that manages character data from the Rick and Morty
 
 ```mermaid
 graph TD
-    Client[Client] -->|HTTP Requests| B
+    Client[Client] -->|Requests| B
 
     subgraph External
         A[Rick&Morty API]
@@ -40,8 +40,6 @@ graph TD
 ## Prerequisites
 
 - Docker and Docker Compose
-- Python 3.12+
-- Poetry (Python package manager)
 - kind (Kubernetes in Docker)
 - flux (FluxCD CLI)
 
@@ -68,16 +66,17 @@ make docker-compose
 
 As Kind deployment implements gitops using flux, you need to satisfy the prerequisites below.
 
-- Install flux CLI
-- Set up a GitHub personal access token (PAT) with the necessary permissions
+- Fork the repository
+- Set up a GitHub personal access token (PAT) with the necessary permissions to be able to read from your fork
 - Set the following environment variables
 
 ```bash
 export GITHUB_PAT=<your-github-pat>
-export GITHUB_URL=<your-github-repo-url>
+export GITHUB_URL=<your-github-repo-url> # e.g. https://github.com/forselli/akamai-sre-home-assignment
 export GITHUB_BRANCH=<your-branch>
 export GITHUB_USERNAME=<your-github-username>
 ```
+
 Deploy the app through kind.
 
 ```bash
