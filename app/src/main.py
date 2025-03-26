@@ -31,7 +31,7 @@ class EndpointFilter(logging.Filter):
         return record.getMessage().find("GET /metrics") == -1
 
 
-# Filter out /endpoint
+# Filter out metrics endpoint
 logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
 
 # Create database tables
