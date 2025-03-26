@@ -47,7 +47,7 @@ jobs:
           registry_name: my-registry
           registry_port: 5001
 
-      - name: Push docker image
+      - name: Push docker image to kind registry
         env:
           LOCAL_REGISTRY: ${{ steps.kind.outputs.LOCAL_REGISTRY }}
         run: |
@@ -56,6 +56,7 @@ jobs:
 
       - name: Install Flux in Kubernetes Kind
         run: flux install
+
       - name: Setup cluster reconciliation
         run: |
           flux create source git flux-system \
@@ -86,10 +87,10 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push docker image to registry
+      - name: Push docker image to docker hub
         run: |
-          docker tag app:test app:latest
-          docker push app:latest
+          docker tag app:test franciscoorselli/app:latest
+          docker push franciscoorselli/app:latest
 
       - name: Debug failure
         if: failure()
