@@ -5,7 +5,6 @@ from typing import Optional
 
 import httpx
 from cache import (
-    REQUEST_TIMEOUT,
     redis_client,
     redis_ttl,
 )
@@ -19,7 +18,7 @@ from utils import CACHE_HITS, CACHE_MISSES, CHARACTERS_PROCESSED
 logger = logging.getLogger(__name__)
 
 
-def main(db: Session):
+def get_all_characters(db: Session):
     BASE_URL = "https://rickandmortyapi.com/api/character?species=Human&status=Alive&page="
     all_data_results = []
     page = 1
@@ -85,7 +84,7 @@ def fetch_characters(url: str, page: int) -> Optional[dict]:
     Fetch characters from the Rick and Morty API with retry logic and rate limiting.
     """
     try:
-        with httpx.Client(timeout=REQUEST_TIMEOUT) as client:
+        with httpx.Client(timeout=int(30)) as client:
             response = client.get(url + str(page))
             response.raise_for_status()
             return response.json()

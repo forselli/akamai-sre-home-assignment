@@ -12,3 +12,6 @@ docker-compose:
 
 docker-compose-rm:
 	docker-compose down
+
+lint:
+	bin/lint.sh

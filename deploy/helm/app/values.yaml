@@ -51,6 +51,8 @@ configMaps:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_TTL: "1800"
+      API_RATE_LIMIT: "5"
+      API_RATE_WINDOW: "60"
 ingress:
   app:
     enabled: true

@@ -7,9 +7,8 @@ redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "redis"), port=int(os.ge
 redis_ttl = int(os.getenv("REDIS_TTL", 30))
 
 # API Configuration
-API_RATE_LIMIT = 5  # requests per minute
-API_RATE_WINDOW = 60  # seconds
-REQUEST_TIMEOUT = 30  # seconds
+API_RATE_LIMIT = int(os.getenv("API_RATE_LIMIT", 5))  # requests per minute
+API_RATE_WINDOW = int(os.getenv("API_RATE_WINDOW", 60))  # seconds
 
 
 def is_rate_limited() -> bool:

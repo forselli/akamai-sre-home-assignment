@@ -2,11 +2,10 @@ import logging
 import os
 from enum import Enum
 
-import models
 import uvicorn
 from cache import is_rate_limited
-from characters import main
-from database import engine, get_db
+from characters import get_all_characters
+from database import Base, CharacterResponse, engine, get_db
 from exceptions import (
     RateLimitException,
     ServiceUnavailableException,
@@ -35,7 +34,7 @@ class EndpointFilter(logging.Filter):
 logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
 
 # Create database tables
-models.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI(openapi_prefix=os.getenv("ROOT_PATH", ""))
@@ -66,12 +65,12 @@ async def get_characters(
     order_by: SortField = Query(default=SortField.ID, description="Field to sort by"),
     order: SortOrder = Query(default=SortOrder.ASC, description="Sort order"),
     db: Session = Depends(get_db),
-) -> Page[models.CharacterResponse]:
+) -> Page[CharacterResponse]:
     if is_rate_limited():
         raise RateLimitException()
 
     # Get characters (either from cache or by fetching)
-    characters = main(db)
+    characters = get_all_characters(db)
 
     # Sort the characters based on the parameters
     sorted_characters = sorted(

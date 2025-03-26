@@ -1,0 +1,74 @@
+groups:
+- name: FastAPIAlerts
+  rules:
+  # High Error Rate Alert
+  - alert: HighErrorRate
+    expr: |
+      sum(rate(fastapi_responses_total{status_code=~"5.*"}[5m]))
+      /
+      sum(rate(fastapi_responses_total[5m])) * 100 > 5
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High HTTP 5xx Error Rate"
+      description: "Error rate is {{ $value }}% over the last 5 minutes"
+
+  # High Response Time Alert
+  - alert: SlowResponseTime
+    expr: |
+      histogram_quantile(0.95,
+        sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le, path)
+      ) > 2
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Slow Response Time on {{ $labels.path }}"
+      description: "95th percentile response time is {{ $value }}s"
+
+  # High Request Rate Alert
+  - alert: HighRequestRate
+    expr: |
+      sum(rate(fastapi_requests_total[1m])) > 1000
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High Request Rate"
+      description: "Request rate of {{ $value }} req/s exceeds threshold"
+
+  # High In-Progress Requests Alert
+  - alert: TooManyInProgressRequests
+    expr: |
+      sum(fastapi_requests_in_progress) > 100
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Too Many In-Progress Requests"
+      description: "{{ $value }} requests currently in progress"
+
+  # Cache Performance Alert
+  - alert: LowCacheHitRate
+    expr: |
+      sum(rate(cache_hits_total[5m]))
+      /
+      (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m]))) * 100 < 50
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Low Cache Hit Rate"
+      description: "Cache hit rate is {{ $value }}% over the last 5 minutes"
+
+  # High Exception Rate Alert
+  - alert: HighExceptionRate
+    expr: |
+      rate(fastapi_exceptions_total[5m]) > 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High Exception Rate"
+      description: "Exception rate of {{ $value }} per second on {{ $labels.path }}"
