@@ -1,7 +1,6 @@
 import json
 import logging
 import time
-from typing import Optional
 
 import httpx
 from cache import (
@@ -71,7 +70,7 @@ def get_all_characters(db: Session):
 
     except Exception as e:
         logger.error(f"Error in main processing: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @retry(
@@ -79,12 +78,12 @@ def get_all_characters(db: Session):
     wait=wait_exponential(multiplier=1, min=4, max=10),
     reraise=True,
 )
-def fetch_characters(url: str, page: int) -> Optional[dict]:
+def fetch_characters(url: str, page: int) -> dict | None:
     """
     Fetch characters from the Rick and Morty API with retry logic and rate limiting.
     """
     try:
-        with httpx.Client(timeout=int(30)) as client:
+        with httpx.Client(timeout=30) as client:
             response = client.get(url + str(page))
             response.raise_for_status()
             return response.json()
@@ -94,10 +93,10 @@ def fetch_characters(url: str, page: int) -> Optional[dict]:
             logger.warning(f"Rate limited by API. Waiting {retry_after} seconds.")
             time.sleep(retry_after)
             return fetch_characters(url, page)
-        raise ServiceUnavailableException("The Rick and Morty API is unavailable")
+        raise ServiceUnavailableException("The Rick and Morty API is unavailable") from exc
     except httpx.RequestError as exc:
         logger.error(f"Request error: {exc}")
-        raise ServiceUnavailableException("The Rick and Morty API is unavailable")
+        raise ServiceUnavailableException("The Rick and Morty API is unavailable") from exc
 
 
 def filter_request(characters):

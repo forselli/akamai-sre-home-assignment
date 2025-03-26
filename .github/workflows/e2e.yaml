@@ -29,6 +29,9 @@ jobs:
       - name: Run tests
         run: PYTHONPATH="app/src:app/tests" poetry run pytest
 
+      - name: Run Ruff
+        run: poetry run ruff check .
+
       - name: Build docker image
         run: docker build -t app:test .
       - name: Setup Flux

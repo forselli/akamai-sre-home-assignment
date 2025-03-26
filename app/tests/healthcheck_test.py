@@ -1,8 +1,6 @@
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
-from cache import redis_client
 from healthcheck import check_database, check_redis, get_health  # Replace with actual module name
 from psycopg2.extensions import QueryCanceledError
 from redis.exceptions import RedisError

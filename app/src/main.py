@@ -62,9 +62,9 @@ class SortOrder(str, Enum):
 
 @app.get("/characters")
 async def get_characters(
-    order_by: SortField = Query(default=SortField.ID, description="Field to sort by"),
-    order: SortOrder = Query(default=SortOrder.ASC, description="Sort order"),
-    db: Session = Depends(get_db),
+    order_by: SortField = Query(default=SortField.ID, description="Field to sort by"),  # noqa: B008
+    order: SortOrder = Query(default=SortOrder.ASC, description="Sort order"),  # noqa: B008
+    db: Session = Depends(get_db),  # noqa: B008
 ) -> Page[CharacterResponse]:
     if is_rate_limited():
         raise RateLimitException()
@@ -99,6 +99,7 @@ if __name__ == "__main__":
     # update uvicorn access logger format
     log_config = uvicorn.config.LOGGING_CONFIG
     log_config["formatters"]["access"]["fmt"] = (
-        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] [trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s] - %(message)s"
+        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
+        "[trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s] - %(message)s"
     )
     uvicorn.run(app, host="0.0.0.0", port="8000", log_config=log_config)
