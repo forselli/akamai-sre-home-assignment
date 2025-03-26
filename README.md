@@ -6,18 +6,35 @@ A FastAPI-based microservice that manages character data from the Rick and Morty
 
 ```mermaid
 graph TD
-A[Rick&Morty API] --> B[App]
-B[App] -->|Cache Data| C[Redis]
-B -->|Store Data| D[PostgreSQL]
-B -->|Rate Limiting| C
-B -->|Health Checks| C
-B -->|Health Checks| D
-B -->|Metrics| E[Prometheus]
-B -->|Logs| F[Loki]
-B -->|Traces| G[Tempo]
-E -->H[Grafana]
-F -->H[Grafana]
-G -->H[Grafana]
+    Client[Client] -->|HTTP Requests| B
+
+    subgraph External
+        A[Rick&Morty API]
+    end
+
+    subgraph Infrastructure
+        B[App]
+        C[Redis]
+        D[PostgreSQL]
+        E[Prometheus]
+        F[Loki]
+        G[Tempo]
+        H[Grafana]
+
+        B -->|Cache Data| C
+        B -->|Store Data| D
+        B -->|Rate Limiting| C
+        B -->|Health Checks| C
+        B -->|Health Checks| D
+        B -->|Metrics| E
+        B -->|Logs| F
+        B -->|Traces| G
+        E -->H
+        F -->H
+        G -->H
+    end
+
+    B -->|Fetch Data| A
 ```
 
 ## Prerequisites
@@ -123,7 +140,7 @@ firefox http://localhost:3000
 
 ### Prometheus
 
-- Access the Prometheus dashboard
+- Access the Prometheus dashboard and check the metrics and defined alerts
 
 ```bash
 firefox http://localhost:9090
